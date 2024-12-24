@@ -1,0 +1,21 @@
+.item{
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+    border-radius: 5px;
+}
+.item .mic{
+    height: 90px;
+    width: 90px;
+    text-align: center;
+    line-height: 90px;
+    font-size: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: white;
+    background: rgb(15,88,224);
+    background: linear-gradient(90deg, rgba(15,88,224,0.8911939775910365) 0%, rgba(17,17,255,1) 24%, rgba(218,0,255,1) 100%);
+}
+
+.item #output{
+    border: 1px solid rgb(230, 230, 230);
+    border-radius: 5px;
+}
