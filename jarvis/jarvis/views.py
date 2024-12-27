@@ -73,14 +73,17 @@ def home(request):
             response = "I think I'm not your type, and that's okay. "
             engine.say(response)
             engine.runAndWait()
+
         elif "hug you" in data:
             response = "Still working........."
             engine.say(response)
             engine.runAndWait()
+
         elif "kiss you" in data:
             response = "Still working........."
             engine.say(response)
             engine.runAndWait()
+            
         elif "i am suffering from fever" in data:
             response = "Oh no! I'm sorry to hear that. Please make sure to eat some food, take your medicine, and get plenty of rest. Take care of yourself. Would you like me to call a doctor or your mom?"
             engine.say(response)
