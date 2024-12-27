@@ -4,6 +4,10 @@ from django.views.decorators.csrf import csrf_exempt
 import pyttsx3
 import datetime
 import pyjokes
+from apiip import apiip
+import requests
+import wikipedia
+import webbrowser
 
 @csrf_exempt
 def home(request):
@@ -143,6 +147,88 @@ def home(request):
             response = "I am Jarvis, your personal assistant. I am here to help you with your tasks and make your day easier!"
             engine.say(response)
             engine.runAndWait()
+        # news
+        # elif 'today news' in data:
+        #     api_key = "bb31751c01cf4b3bbd6709d79ee51d38"
+        #     url = 'https://newsapi.org/v2/everything'
+        #     params = {'q': 'Python', 'sortBy': 'popularity', 'apiKey': api_key}
+        #     response = requests.get(url, params=params)
+            
+        #     if response.status_code == 200:
+        #         articles = response.json().get('articles', [])
+        #         news_titles = [article.get('title') for article in articles if article.get('title')]
+        #         response_message = "News articles: " + ", ".join(news_titles) if news_titles else "No news found."
+        #         engine.say(response_message)
+        #         engine.runAndWait()
+        #     else:
+        #         response_message = f"Failed to fetch news. Error code: {response.status_code}"
+        #         engine.say(response_message)
+        #         engine.runAndWait()
+
+        
+        # #location
+        # elif 'location' or 'where i am' in data:
+        #     def location():
+        #         api_key =  apiip('d85412f9-d2b1-428c-93e6-d14c227e43d4')
+        #         info = api_key.get_location()
+        #         response = f"location:{info}"
+        #         engine.say(response)
+        #         engine.runAndWait()
+        #         location()
+
+        elif "wikipedia" in data:
+            data = data.replace("wikipedia", "").strip()  # Remove the "wikipedia" part and any extra spaces
+            try:
+                # Get summary of the search term (limit to 2 sentences)
+                response = wikipedia.summary(data, sentences=2)
+                engine.say(response)
+                engine.runAndWait()
+            except wikipedia.exceptions.DisambiguationError as e:
+                # Handle case where multiple pages match the query
+                engine.say(f"Multiple results found. Please be more specific. Here are some options: {e.options[:3]}")  # Show up to 3 options
+                engine.runAndWait()
+            except wikipedia.exceptions.HTTPTimeoutError:
+                # Handle case where Wikipedia is unreachable
+                engine.say("Sorry, there was a problem fetching the information. Please try again later.")
+                engine.runAndWait()
+            except wikipedia.exceptions.PageError:
+                # Handle case where no page was found for the query
+                engine.say("Sorry, I couldn't find any information on that topic.")
+                engine.runAndWait()
+            except Exception as e:
+                # Catch any other errors
+                engine.say(f"An error occurred: {str(e)}")
+                engine.runAndWait()
+        # open websites
+        # elif "open google" in data:
+            # data = data.replace("google", "").strip()
+            # webbrowser.open("google.com")
+        # elif f"open {data}" in data:
+        #     data = data.replace(data, "").strip()
+        #     webbrowser.open(f"{data}.com")
+        elif "open" in data:
+            website = data.replace("open", "").strip()
+            if website:
+                if '.' not in website:
+                    extensions = [
+                            '.com', '.org', '.net', '.info', '.biz', '.edu', '.gov', '.int', '.mil', 
+                            '.in', '.us', '.uk', '.ca', '.au', '.de', '.fr', '.jp', '.cn', '.br', 
+                            '.ru', '.sa', '.za', '.ai', '.io', '.tv', '.me', '.app', '.tech', 
+                            '.xyz', '.co', '.store', '.online', '.shop', '.website', '.space', 
+                            '.name', '.pro', '.mobi', '.asia', '.tel', '.museum', '.coop', '.aero'
+                        ]
+                    for ext in extensions:
+                        url = f"http://{website}{ext}"
+                        try:
+                            webbrowser.open(url)
+                            break  
+                        except:
+                            continue  
+                else:
+                    webbrowser.open(f"http://{website}")
+            else:
+                engine.say("Please specify a website name after 'open'.")
+                engine.runAndWait()
         else:
             response = f"You said: {data}"
 
