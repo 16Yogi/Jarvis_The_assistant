@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Jarvis - Speech Recognition</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script> <!-- Full version of jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="{% static 'index.css' %}">
@@ -20,7 +20,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarScroll">
-                <ul class="navbar-nav mr-auto my-2 my-lg-0 navbar-nav-scroll" style="max-height: 100px;">
+                <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
                         <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
                     </li>
@@ -31,6 +31,7 @@
             </div>
         </nav>
     </div>
+
     <div class="container-fluid py-5">
         <div class="container py-5">
             <div class="col-9 mx-auto item px-3 py-3">
@@ -38,6 +39,19 @@
                     <h2 class="text-center">Hey! I am Jarvis</h2>
                     <hr>
                 </div>
+
+                <!-- Video Player -->
+                <div class="col text-center">
+                    <video id="video" width="320" height="240" controls>
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <audio id="audio" controls>
+                        <source src="" type="audio/mpeg">
+                        </audio>
+                </div>
+
+                <!-- Speech Recognition Output -->
                 <div class="col py-3">
                     <div class="col">
                         <div class="mic mx-auto">
@@ -47,143 +61,99 @@
                     <div class="col-10 py-3 mx-auto mt-4" id="output">
                         <p>Listening...</p>
                     </div>
-                    <div class="col-10 py-3 mx-auto mt-4" >
+                    <div class="col-10 py-3 mx-auto mt-4">
                         <p id="output-text">{{ output }}</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</body>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-    const outputDiv = document.getElementById("output");
-    let isProcessing = false; // Prevent multiple AJAX calls
-    let lastProcessedSpeech = ""; // Store the last processed speech
 
-    // Check if Web Speech API is supported
-    if (!("webkitSpeechRecognition" in window)) {
-        alert("Your browser does not support the Web Speech API. Please use Chrome or Edge.");
-        return;
-    }
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const outputDiv = document.getElementById("output");
+            const videoElement = document.getElementById("video");
+            let isProcessing = false; // Prevent multiple AJAX calls
+            let lastProcessedSpeech = ""; // Store the last processed speech
 
-    const recognition = new webkitSpeechRecognition();
-    recognition.continuous = true;  // Keep listening continuously
-    recognition.interimResults = false; // Only process final results
-    recognition.lang = "en-US";  // Set the language
-
-    // Start recognition when the page loads
-    recognition.start();
-
-    // Handle speech recognition result
-    recognition.onresult = (event) => {
-        const userSpeech = event.results[event.resultIndex][0].transcript.trim();
-
-        // Check if the input is different from the last processed speech
-        if (userSpeech !== lastProcessedSpeech && !isProcessing) {
-            lastProcessedSpeech = userSpeech; // Update the last processed speech
-            isProcessing = true; // Set the flag to true
-            outputDiv.innerHTML = `<p>You said: "${userSpeech}"</p>`;
-
-            $.ajax({
-                url: "{% url 'home' %}",  // URL of the backend view
-                type: "POST",
-                data: {
-                    'speech': userSpeech,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // CSRF token is required
-                },
-                success: function (response) {
-                    // Update the output with the response from the backend
-                    $('#output-text').html(response.output);  // Update the output div with response
-                },
-                error: function (xhr, status, error) {
-                    console.error("AJAX error: ", error);
-                    alert("There was an error processing your request.");
-                },
-                complete: function () {
-                    isProcessing = false; // Reset the flag after the request is complete
-                }
-            });
-        }
-    };
-
-    // Handle speech recognition error
-    recognition.onerror = function (event) {
-        if (event.error == 'no-speech') {
-            outputDiv.innerHTML = "<p>No speech detected. Please try again.</p>";
-        } else {
-            console.error("Speech recognition error:", event.error);
-            outputDiv.innerHTML = "<p>An error occurred while recognizing speech. Please try again.</p>";
-        }
-    };
-
-    // Handle speech recognition end (keep it running)
-    recognition.onend = () => {
-        console.log("Speech recognition ended. Restarting...");
-        recognition.start();  // Restart the recognition to keep listening
-    };
-});
-
-</script>
-<!-- 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const outputDiv = document.getElementById("output");
-
-        // Check if Web Speech API is supported
-        if (!("webkitSpeechRecognition" in window)) {
-            alert("Your browser does not support the Web Speech API. Please use Chrome or Edge.");
-            return;
-        }
-
-        const recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;  // Keep listening continuously
-        recognition.interimResults = true; // Show results while the user is speaking
-        recognition.lang = "en-US";  // Set the language
-
-        // Start recognition when the page loads
-        recognition.start();
-
-        // Handle speech recognition result
-        recognition.onresult = (event) => {
-            const userSpeech = event.results[event.resultIndex][0].transcript;
-            outputDiv.innerHTML = `<p>You said: "${userSpeech}"</p>`;
-
-            // Send the speech data to the backend via AJAX
-            console.log("hello")
-            $.ajax({
-                url: "{% url 'home' %}",  // URL of the backend view
-                type: "POST",
-                data: {
-                    'speech': userSpeech,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // CSRF token is required
-                },
-                success: function (response) {
-                    // Update the output with the response from the backend
-                    $('#output-text').html(response.output);  // Update the output div with response
-                },
-                error: function (xhr, status, error) {
-                    console.error("AJAX error: ", error);
-                    alert("There was an error processing your request.");
-                }
-            });
-        };
-
-        // Handle speech recognition error
-        recognition.onerror = function(event) {
-            if (event.error == 'no-speech') {
-                outputDiv.innerHTML = "<p>No speech detected. Please try again.</p>";
-            } else {
-                console.error("Speech recognition error:", event.error);
-                outputDiv.innerHTML = "<p>An error occurred while recognizing speech. Please try again.</p>";
+            // Check if Web Speech API is supported
+            if (!("webkitSpeechRecognition" in window)) {
+                alert("Your browser does not support the Web Speech API. Please use Chrome or Edge.");
+                return;
             }
-        };
 
-        // Handle speech recognition end (keep it running)
-        recognition.onend = () => {
-            console.log("Speech recognition ended. Restarting...");
-            recognition.start();  // Restart the recognition to keep listening
-        };
-    });
-</script> -->
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;  // Keep listening continuously
+            recognition.interimResults = false; // Only process final results
+            recognition.lang = "en-US";  // Set the language
+
+            // Start recognition when the page loads
+            recognition.start();
+
+            // Handle speech recognition result
+            recognition.onresult = (event) => {
+                const userSpeech = event.results[event.resultIndex][0].transcript.trim();
+
+                // Check if the input is different from the last processed speech
+                if (userSpeech !== lastProcessedSpeech && !isProcessing) {
+                    lastProcessedSpeech = userSpeech; // Update the last processed speech
+                    isProcessing = true; // Set the flag to true
+                    outputDiv.innerHTML = `<p>You said: "${userSpeech}"</p>`;
+
+                    $.ajax({
+                        url: "{% url 'home' %}",  // URL of the backend view
+                        type: "POST",
+                        data: {
+                            'speech': userSpeech,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'  // CSRF token is required
+                        },
+                        success: function (response) {
+                            console.log("Server Response:", response);
+
+                            // Update the output text
+                            $('#output-text').html(response.output);
+
+                            // Update and reload the video source dynamically
+                            let datasrc = response.video
+
+                            let fileExtension = datasrc.split('.').pop().toLowerCase();
+
+                            if(['mp4'].includes(fileExtension)){
+                                $('#video').attr('src', response.video);
+                                console.log("this is run here ")
+                            }else if (['mp3'].includes(fileExtension)){
+                                $('#audio').attr('src', response.video);
+                                console.log("this is run here ")
+                            }
+
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("AJAX error: ", error);
+                            alert("There was an error processing your request.");
+                        },
+                        complete: function () {
+                            isProcessing = false; // Reset the flag after the request is complete
+                        }
+                    });
+                }
+            };
+
+            // Handle speech recognition error
+            recognition.onerror = function (event) {
+                if (event.error == 'no-speech') {
+                    outputDiv.innerHTML = "<p>No speech detected. Please try again.</p>";
+                } else {
+                    console.error("Speech recognition error:", event.error);
+                    outputDiv.innerHTML = "<p>An error occurred while recognizing speech. Please try again.</p>";
+                }
+            };
+
+            // Handle speech recognition end (keep it running)
+            recognition.onend = () => {
+                console.log("Speech recognition ended. Restarting...");
+                recognition.start();  // Restart the recognition to keep listening
+            };
+        });
+    </script>
+</body>
 </html>
